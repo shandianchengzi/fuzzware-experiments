@@ -23,6 +23,8 @@ Here we aggregate the coverage between experiments (Table 5 in the paper).
 """
 print("=== Coverage min/max/avg/totals (paper Table 5) ===")
 
+testcase_stat = "" # record execs_done and execs_per_secs
+
 for target_name in target_names:
     num_projects = 0
     overall_covered_bb_set = set()
@@ -54,7 +56,21 @@ for target_name in target_names:
         min_bbs_individual_run = min(run_num_bbs_covered, min_bbs_individual_run)
 
         overall_covered_bb_set |= run_covered_bb_set
-    
+
+        # calculate the execs_done and execs_per_sec of each project
+        fuzzer_index = 1
+        execs_done = 0
+        while True:
+            fuzzers_path = os.path.join(projdir, "main%03d"%fuzzer_index, "fuzzers", "fuzzer1", "fuzzer_stats")
+            if not os.path.exists(fuzzers_path):
+                break
+            with open(fuzzers_path) as f:
+                context = f.readlines()
+                execs_done += int(context[4].strip().rsplit(" ",1)[1])
+            fuzzer_index += 1
+        execs_per_sec = execs_done / 24 / 3600
+        testcase_stat += "%s, execs_done: %d, execs_per_sec: %.2f\n" % (target_name.replace("/", "_") + "_" + os.path.basename(projdir), execs_done, execs_per_sec)
+
     if num_projects == 0:
         print(f"\nTarget {target_name} ---- Found only incomplete / interrupted runs ----")
     else:
@@ -72,6 +88,10 @@ plots_dir = os.path.join(DIR, "plots")
 if os.path.exists(plots_dir):
     shutil.rmtree(plots_dir)
 os.mkdir(plots_dir)
+
+# record execs_done and execs_per_secs
+with open(os.path.join(plots_dir, 'testcase.dat'), "w") as f:
+    f.write(testcase_stat)
 
 for target_name in target_names:
     projdirs = glob.glob(os.path.join(DIR, target_name, "fuzzware-project*-run-[0-9][0-9]"))
