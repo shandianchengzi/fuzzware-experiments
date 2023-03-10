@@ -35,7 +35,7 @@ for target_name in target_names:
     if not projdirs:
         print(f"\n[WARNING] Could not find any project directories for target '{target_name}'")
         continue
-
+    
     for projdir in projdirs:
         if "_old" in projdir:
             continue
@@ -69,7 +69,9 @@ for target_name in target_names:
                 execs_done += int(context[4].strip().rsplit(" ",1)[1])
             fuzzer_index += 1
         execs_per_sec = execs_done / 24 / 3600
-        testcase_stat += "%s, execs_done: %d, execs_per_sec: %.2f\n" % (target_name.replace("/", "_") + "_" + os.path.basename(projdir), execs_done, execs_per_sec)
+        testcase_stat += "%s,\texecs_done: %d,\texecs_per_sec: %.2f,\tcovered_bb: %d\n" % (target_name.replace("/", "_") + "_" + os.path.basename(projdir), execs_done, execs_per_sec, run_num_bbs_covered)
+
+    testcase_stat += "\n"
 
     if num_projects == 0:
         print(f"\nTarget {target_name} ---- Found only incomplete / interrupted runs ----")
