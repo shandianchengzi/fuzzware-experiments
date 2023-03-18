@@ -128,7 +128,7 @@ for target_name in target_names:
 
     gnuplot_png_outpath = os.path.join(plots_dir, "plot" + target_name.replace("/", "_") + ".png")
     gnuplot_code = f"set terminal png; set output '{gnuplot_png_outpath}'; set title 'Coverage {target_name}'; set ylabel '#BBs Found(bbs)'; set xlabel 'Time(h)';"
-    gnuplot_code += "set xrange [0:24] noextend; set xtics 0,4,24; "
+    gnuplot_code += "set xrange [0:24] noextend; set xtics 6; set mxtics 2; set grid xtics mxtics ytics; "
     gnuplot_code += "plot "
 
     for i, p in enumerate(plot_data_paths):
