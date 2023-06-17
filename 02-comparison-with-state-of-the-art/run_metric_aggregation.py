@@ -23,6 +23,8 @@ Here we aggregate the coverage between experiments (Table 5 in the paper).
 """
 print("=== Coverage min/max/avg/totals (paper Table 5) ===")
 
+testcase_stat = "" # record execs_done and execs_per_secs
+
 for target_name in target_names:
     num_projects = 0
     overall_covered_bb_set = set()
@@ -33,7 +35,7 @@ for target_name in target_names:
     if not projdirs:
         print(f"\n[WARNING] Could not find any project directories for target '{target_name}'")
         continue
-
+    
     for projdir in projdirs:
         if "_old" in projdir:
             continue
@@ -54,7 +56,23 @@ for target_name in target_names:
         min_bbs_individual_run = min(run_num_bbs_covered, min_bbs_individual_run)
 
         overall_covered_bb_set |= run_covered_bb_set
-    
+
+        # calculate the execs_done and execs_per_sec of each project
+        fuzzer_index = 1
+        execs_done = 0
+        while True:
+            fuzzers_path = os.path.join(projdir, "main%03d"%fuzzer_index, "fuzzers", "fuzzer1", "fuzzer_stats")
+            if not os.path.exists(fuzzers_path):
+                break
+            with open(fuzzers_path) as f:
+                context = f.readlines()
+                execs_done += int(context[4].strip().rsplit(" ",1)[1])
+            fuzzer_index += 1
+        execs_per_sec = execs_done / 24 / 3600
+        testcase_stat += "%s,\texecs_done: %d,\texecs_per_sec: %.2f,\tcovered_bb: %d\n" % (target_name.replace("/", "_") + "_" + os.path.basename(projdir), execs_done, execs_per_sec, run_num_bbs_covered)
+
+    testcase_stat += "\n"
+
     if num_projects == 0:
         print(f"\nTarget {target_name} ---- Found only incomplete / interrupted runs ----")
     else:
@@ -72,6 +90,10 @@ plots_dir = os.path.join(DIR, "plots")
 if os.path.exists(plots_dir):
     shutil.rmtree(plots_dir)
 os.mkdir(plots_dir)
+
+# record execs_done and execs_per_secs
+with open(os.path.join(plots_dir, 'testcase.dat'), "w") as f:
+    f.write(testcase_stat)
 
 for target_name in target_names:
     projdirs = glob.glob(os.path.join(DIR, target_name, "fuzzware-project*-run-[0-9][0-9]"))
@@ -106,7 +128,7 @@ for target_name in target_names:
 
     gnuplot_png_outpath = os.path.join(plots_dir, "plot" + target_name.replace("/", "_") + ".png")
     gnuplot_code = f"set terminal png; set output '{gnuplot_png_outpath}'; set title 'Coverage {target_name}'; set ylabel '#BBs Found(bbs)'; set xlabel 'Time(h)';"
-    gnuplot_code += "set xrange [0:24] noextend; set xtics 0,4,24; "
+    gnuplot_code += "set xrange [0:24] noextend; set xtics 6; set mxtics 2; set grid xtics mxtics ytics; "
     gnuplot_code += "plot "
 
     for i, p in enumerate(plot_data_paths):
