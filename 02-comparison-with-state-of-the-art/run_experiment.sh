@@ -1,6 +1,7 @@
 #!/bin/bash
 DIR="$(dirname "$(readlink -f "$0")")"
 
+# TARGET_LIST="P2IM/CNC P2IM/Gateway"
 TARGET_LIST="P2IM/CNC P2IM/Drone P2IM/Heat_Press P2IM/Reflow_Oven P2IM/Soldering_Iron P2IM/Console P2IM/Gateway P2IM/PLC P2IM/Robot P2IM/Steering_Control"
 TARGET_LIST="$TARGET_LIST uEmu/6LoWPAN_Receiver uEmu/6LoWPAN_Sender uEmu/RF_Door_Lock uEmu/Thermostat uEmu/XML_Parser uEmu/LiteOS_IoT uEmu/Zepyhr_SocketCan uEmu/utasker_MODBUS uEmu/utasker_USB uEmu/uEmu.3Dprinter uEmu/uEmu.GPSTracker"
 FUZZING_RUNTIME=24:00:00
